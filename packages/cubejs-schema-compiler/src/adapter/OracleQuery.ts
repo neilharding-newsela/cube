@@ -179,6 +179,42 @@ export class OracleQuery extends BaseQuery {
     return res;
   }
 
+  /**
+   * Dialect templates for the Tesseract (native) planner. The legacy-planner
+   * overrides above (`asSyntaxTable`, `groupByDimensionLimit`, `groupByClause`)
+   * don't apply to the native planner, which renders SQL purely from these
+   * templates. Oracle needs three deviations from the defaults:
+   *   - no `AS` keyword before table / subquery aliases,
+   *   - `OFFSET ... ROWS FETCH NEXT ... ROWS ONLY` instead of `LIMIT`/`OFFSET`,
+   *   - expression-based `GROUP BY` (Oracle has no positional GROUP BY).
+   */
+  public sqlTemplates() {
+    const templates = super.sqlTemplates();
+    // Oracle forbids `AS` before a table/subquery alias.
+    templates.expressions.query_aliased = '{{ query }} {{ quoted_alias }}';
+    // Oracle does not support positional GROUP BY — group by expressions.
+    templates.statements.group_by_exprs = '{{ group_by | map(attribute=\'expr\') | join(\', \') }}';
+    // No `AS` before the FROM subquery alias, and Oracle row-limiting syntax.
+    templates.statements.select = '{% if ctes %} WITH \n' +
+      '{{ ctes | join(\',\n\') }}\n' +
+      '{% endif %}' +
+      'SELECT {% if distinct %}DISTINCT {% endif %}' +
+      '{{ select_concat | map(attribute=\'aliased\') | join(\', \') }} {% if from %}\n' +
+      'FROM (\n' +
+      '{{ from | indent(2, true) }}\n' +
+      ') {{ from_alias }}{% elif from_prepared %}\n' +
+      'FROM {{ from_prepared }}' +
+      '{% endif %}' +
+      '{% for join in joins %}\n{{ join }}{% endfor %}' +
+      '{% if filter %}\nWHERE {{ filter }}{% endif %}' +
+      '{% if group_by %}\nGROUP BY {{ group_by }}{% endif %}' +
+      '{% if having %}\nHAVING {{ having }}{% endif %}' +
+      '{% if order_by %}\nORDER BY {{ order_by | map(attribute=\'expr\') | join(\', \') }}{% endif %}' +
+      '{% if offset is not none %}\nOFFSET {{ offset }} ROWS{% endif %}' +
+      '{% if limit is not none %}\nFETCH NEXT {{ limit }} ROWS ONLY{% endif %}';
+    return templates;
+  }
+
   public newFilter(filter) {
     return new OracleFilter(this, filter);
   }
