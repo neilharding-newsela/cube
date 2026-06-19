@@ -101,9 +101,7 @@ impl SingleAliasedSource {
             // The alias of a SQL-API sub-query join is already a final, quoted
             // identifier and is referenced verbatim in the join ON condition.
             // Re-quoting it would double the quotes and break the reference.
-            SingleSource::RawSubquerySql(_) => {
-                templates.query_aliased_prequoted(&sql, &self.alias)
-            }
+            SingleSource::RawSubquerySql(_) => templates.query_aliased_prequoted(&sql, &self.alias),
             _ => templates.query_aliased(&sql, &self.alias),
         }
     }
