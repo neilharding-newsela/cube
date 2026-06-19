@@ -11,7 +11,7 @@ use crate::planner::JoinTree;
 use crate::planner::MemberSymbol;
 use cubenativeutils::CubeError;
 use itertools::Itertools;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 
 /// A single measure paired with the complete set of join hints it
@@ -289,6 +289,25 @@ impl MultiFactJoinGroups {
             }
         }
         Ok(false)
+    }
+
+    /// Full names of the (leaf) measures that are multiplied — i.e. sit below a
+    /// one-to-many join — in these join groups. Like `has_multiplied_measures`,
+    /// but returns the concrete measures so callers can compare the
+    /// multiplicativity of a measure between two different groupings (e.g. the
+    /// query vs a pre-aggregation).
+    pub fn multiplied_measures(&self) -> Result<HashSet<String>, CubeError> {
+        let mut result = HashSet::new();
+        for (join, measures) in self.groups.iter() {
+            for measure in measures.iter() {
+                for item in collect_multiplied_measures(measure, join)? {
+                    if item.multiplied {
+                        result.insert(item.measure.full_name());
+                    }
+                }
+            }
+        }
+        Ok(result)
     }
 
     pub fn groups(&self) -> &[(Rc<JoinTree>, Vec<Rc<MemberSymbol>>)] {
