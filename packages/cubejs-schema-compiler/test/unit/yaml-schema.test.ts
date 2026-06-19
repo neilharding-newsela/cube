@@ -2095,7 +2095,8 @@ cubes:
       const [sql] = query.buildSqlAndParams();
       expect(sql).not.toMatch(/CASE\s+WHEN/);
       expect(sql).not.toMatch(/owner_id\s*=/);
-      expect(sql).toMatch(/-1\s+"transactions__total_cost"/);
+      // The Tesseract planner parenthesizes the masked literal, e.g. `(-1)`.
+      expect(sql).toMatch(/\(?-1\)?\s+"transactions__total_cost"/);
     });
 
     it('still applies conditional CASE WHEN masking for aggregate measures when the filter member is in the group by', async () => {
