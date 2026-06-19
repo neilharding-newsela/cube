@@ -660,9 +660,11 @@ impl TestContext {
                 }
                 tables
             }
-            PreAggregationSource::Union(union) => {
-                union.items.iter().map(|t| t.as_ref().clone()).collect()
-            }
+            PreAggregationSource::Union(union) => union
+                .items
+                .iter()
+                .map(|item| item.table.as_ref().clone())
+                .collect(),
         }
     }
 
