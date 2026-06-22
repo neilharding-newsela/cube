@@ -30,6 +30,8 @@ pub struct YamlBaseQueryOptions {
     #[serde(default)]
     pub pre_aggregation_query: Option<bool>,
     #[serde(default)]
+    pub use_original_sql_pre_aggregations: Option<bool>,
+    #[serde(default)]
     pub total_query: Option<bool>,
     #[serde(default)]
     pub cubestore_support_multistage: Option<bool>,

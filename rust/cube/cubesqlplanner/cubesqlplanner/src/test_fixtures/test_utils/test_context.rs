@@ -443,6 +443,7 @@ impl TestContext {
                 .ungrouped(yaml_options.ungrouped)
                 .export_annotated_sql(yaml_options.export_annotated_sql.unwrap_or(false))
                 .pre_aggregation_query(yaml_options.pre_aggregation_query)
+                .use_original_sql_pre_aggregations(yaml_options.use_original_sql_pre_aggregations)
                 .total_query(yaml_options.total_query)
                 .cubestore_support_multistage(yaml_options.cubestore_support_multistage)
                 .disable_external_pre_aggregations(

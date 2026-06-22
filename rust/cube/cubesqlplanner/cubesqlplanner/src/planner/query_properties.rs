@@ -167,6 +167,12 @@ pub struct QueryProperties {
     ungrouped: bool,
     #[builder(default)]
     pre_aggregation_query: bool,
+    /// When building a rollup pre-aggregation, source it from the cube's
+    /// `originalSql` pre-aggregation table instead of the raw cube SQL.
+    /// Mirrors the legacy `useOriginalSqlPreAggregationsInPreAggregation`
+    /// option consulted in `BaseQuery.cubeSql()`.
+    #[builder(default)]
+    use_original_sql_pre_aggregations: bool,
     #[builder(default)]
     total_query: bool,
     #[builder(default = Rc::new(JoinHints::new()))]
@@ -352,6 +358,10 @@ impl QueryProperties {
 
     pub fn is_pre_aggregation_query(&self) -> bool {
         self.pre_aggregation_query
+    }
+
+    pub fn use_original_sql_pre_aggregations(&self) -> bool {
+        self.use_original_sql_pre_aggregations
     }
 
     pub fn disable_external_pre_aggregations(&self) -> bool {
@@ -1144,6 +1154,7 @@ impl PartialEq for QueryProperties {
             ungrouped,
             ignore_cumulative,
             pre_aggregation_query,
+            use_original_sql_pre_aggregations,
             total_query,
             allow_multi_stage,
             disable_external_pre_aggregations,
@@ -1169,6 +1180,7 @@ impl PartialEq for QueryProperties {
             && *ungrouped == other.ungrouped
             && *ignore_cumulative == other.ignore_cumulative
             && *pre_aggregation_query == other.pre_aggregation_query
+            && *use_original_sql_pre_aggregations == other.use_original_sql_pre_aggregations
             && *total_query == other.total_query
             && *allow_multi_stage == other.allow_multi_stage
             && *disable_external_pre_aggregations == other.disable_external_pre_aggregations

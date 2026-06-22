@@ -53,7 +53,13 @@ impl TopLevelPlanner {
 
         let physical_plan_builder =
             PhysicalPlanBuilder::new(self.query_tools.query_tools().clone(), templates.clone());
-        let original_sql_pre_aggregations = if !self.request.is_pre_aggregation_query() {
+        // Substitute a cube's base SQL with its `originalSql` pre-aggregation table when:
+        // reading (regular query), or building a rollup that opted in via
+        // `useOriginalSqlPreAggregations`. Mirrors the legacy `BaseQuery.cubeSql()` gate
+        // `(!preAggregationQuery || useOriginalSqlPreAggregationsInPreAggregation)`.
+        let original_sql_pre_aggregations = if !self.request.is_pre_aggregation_query()
+            || self.request.use_original_sql_pre_aggregations()
+        {
             OriginalSqlCollector::new(self.query_tools.query_tools().clone())
                 .collect(&optimized_plan)?
         } else {
